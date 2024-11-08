@@ -1,6 +1,21 @@
 # beletapi
 Belet REST API client
 
+# Installation
+Install from github
+
+```bash
+pip install https://github.com/gxosty/beletapi
+```
+
+or install from sources
+
+```bash
+git clone https://github.com/gxosty/beletapi
+cd beletapi
+pip install -e .
+```
+
 # Example Usage:
 Login and download a movie
 ```py
