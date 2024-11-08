@@ -1,3 +1,4 @@
+import os
 import re
 from subprocess import Popen, PIPE
 from typing import Optional
@@ -66,9 +67,14 @@ class FFmpegDownloader(DownloaderBase):
     def download(
         self,
         file: BeletFile,
-        output_filename: str,
+        output_filename: Optional[str],
         download_progress_callback: Optional[DownloadProgressProtocol] = None,
     ) -> str:
+        if output_filename is None:
+            output_filename = os.path.splitext(
+                file.filename.rsplit("/", 1)[1]
+            )[0] + ".mp4"
+
         m = self._fetch_video_metadata(file)
 
         proc = Popen(
