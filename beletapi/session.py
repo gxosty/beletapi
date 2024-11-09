@@ -47,7 +47,7 @@ class BeletSession(requests.Session):
         if not self._token:
             raise InvalidTokenError(self._token)
 
-        s = base64.b64decode(self._token.rsplit(".", 1)[0].encode())
+        s = base64.b64decode(self._token.rsplit(".", 1)[0].encode() + b"==")
         start = s.find(b"{", 1)
         return json.loads(s[start:])["exp"]
 
