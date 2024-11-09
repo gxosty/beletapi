@@ -3,11 +3,11 @@ class BeletFile:
         self,
         filename: str,
         type: str,
-        quality: str,
+        quality: int,
 
         # what is this doing here?
         download_url: str | None = None
     ) -> None:
         self.filename: str = filename
         self.type = type
-        self.quality = quality.rstrip("p")
+        self.quality = int(quality.rstrip("p"))
