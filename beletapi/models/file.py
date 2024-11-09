@@ -10,4 +10,4 @@ class BeletFile:
     ) -> None:
         self.filename: str = filename
         self.type = type
-        self.quality = quality.rstrip("p")
+        self.quality = int(quality.rstrip("p"))
