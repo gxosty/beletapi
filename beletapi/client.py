@@ -2,7 +2,7 @@ import os
 import re
 import struct
 import pickle
-from typing import Optional
+from typing import Optional, List
 
 import requests
 
@@ -10,6 +10,7 @@ from .session import BeletSession
 from .exceptions import *
 from .api import Apis
 from .models.movie import BeletMovie, BeletSeries
+from .models.homepage import BeletHomepageSection
 from .models.file import BeletFile
 from .utils import parse_movie_url
 from .downloaders.ffmpegdownloader import FFmpegDownloader
@@ -99,6 +100,32 @@ class BeletClient(BeletSession):
             movie = BeletSeries(self, **response_json["film"])
 
         return movie
+
+    def get_homepage_movies(
+        self,
+        offset: int = 0,
+        limit: int = 3,
+        h_limit: int = 12,
+        type_id: int = 0,
+    ) -> List[BeletHomepageSection]:
+        response = self.get(
+            Apis.homepage_api.home_page,
+            params={
+                "offset": offset,
+                "limit": limit,
+                "h_limit": h_limit,
+                "type_id": type_id,
+            },
+        )
+
+        response.raise_for_status()
+        response_json = response.json()
+        APIStatusError.raise_for_status(response_json)
+
+        return list(
+            BeletHomepageSection.from_data(self, data)
+            for data in response_json["result"]
+        )
 
     def download(
         self,

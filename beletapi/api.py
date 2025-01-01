@@ -45,7 +45,7 @@ class HomepageApi(metaclass=MetaApi):
     _api_version = 1
 
     # host
-    host = "homepage.belet.tm"
+    host = "homepage.belet.me"
 
     # endpoints
     home_page = "/api/v{_api_version}/home_page"

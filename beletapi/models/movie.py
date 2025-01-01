@@ -15,6 +15,12 @@ class BeletMovie(BeletMovieBase):
         super().__init__(session, **kwargs)
         self._files = None
 
+    def __repr__(self) -> str:
+        return self.__str__()
+
+    def __str__(self) -> str:
+        return f"<BeletMovie: id={self.id} name='{self.name}'>"
+
     @property
     def files(self) -> List[BeletFile]:
         if self._files is not None:
@@ -34,6 +40,11 @@ class BeletMovie(BeletMovieBase):
         ]
 
         return self._files
+
+
+class BeletMovieFragment(BeletMovieBase):
+    def __init__(self, session: BeletSession, **kwargs) -> None:
+        super().__init__(session, **kwargs)
 
 
 class BeletSeriesEpisode:
@@ -59,6 +70,12 @@ class BeletSeriesEpisode:
         self.type_id = type_id
         self.image = image
 
+    def __repr__(self) -> str:
+        return self.__str__()
+
+    def __str__(self) -> str:
+        return f"<BeletSeriesEpisode: id={self.id} name='{self.name}'>"
+
     @property
     def files(self) -> List[BeletFile]:
         return self._files
@@ -75,6 +92,12 @@ class BeletSeriesSeason:
         self.name = name
 
         self._episodes = None
+
+    def __repr__(self) -> str:
+        return self.__str__()
+
+    def __str__(self) -> str:
+        return f"<BeletSeriesSeason: id={self.id} name='{self.name}'>"
 
     @property
     def episodes(self) -> List[BeletSeriesEpisode]:
@@ -117,6 +140,12 @@ class BeletSeries(BeletMovieBase):
         self._seasons = [
             BeletSeriesSeason(self._session, **data) for data in self._seasons
         ]
+
+    def __repr__(self) -> str:
+        return self.__str__()
+
+    def __str__(self) -> str:
+        return f"<BeletSeries: id={self.id} name='{self.name}'>"
 
     @property
     def seasons(self) -> List[BeletSeriesSeason]:

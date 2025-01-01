@@ -88,6 +88,10 @@ class BeletMovieBase:
         # Seasons (+leading underscore because derived classes use it)
         self._seasons: Optional[Dict[str, Any]] = kwargs.get("seasons", None)
 
+        self.episode_info: Optional[Dict[str, Any]] = kwargs.get(
+            "episode_info", None
+        )
+
         # Last watched information
         self.last_episode_info: Optional[Dict[str, Any]] = kwargs.get(
             "last_episode_info", None
