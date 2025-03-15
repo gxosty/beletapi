@@ -9,6 +9,7 @@ class BeletHomepageSection:
         self,
         session: BeletSession,
         id: int,
+        title: str,
         title_tk: str,
         title_ru: str,
         type: BeletHomepageSectionType,

@@ -5,6 +5,7 @@ import pickle
 from typing import Optional, List
 
 import requests
+from requests_toolbelt import MultipartEncoder
 
 from .session import BeletSession
 from .exceptions import *
@@ -12,6 +13,7 @@ from .api import Apis
 from .models.movie import BeletMovie, BeletSeries
 from .models.homepage import BeletHomepageSection
 from .models.file import BeletFile
+from .models.search import BeletSearchResult
 from .utils import parse_movie_url
 from .downloaders.ffmpegdownloader import FFmpegDownloader
 from .downloaders.downloaderbase import (
@@ -87,6 +89,9 @@ class BeletClient(BeletSession):
     def get_movie(self, movie_id: int | str) -> BeletMovie:
         movie_id = self._format_movie_id(movie_id)
         response = self.get(url=Apis.film_api.movie.format(movie_id))
+        
+        with open("movie.json", "wb") as file:
+            file.write(response.content)
 
         response.raise_for_status()
         response_json = response.json()
@@ -126,6 +131,45 @@ class BeletClient(BeletSession):
             BeletHomepageSection.from_data(self, data)
             for data in response_json["result"]
         )
+
+    def search(
+        self, text: str = "", order: str = "desc", page: int = 1
+    ) -> BeletSearchResult:
+        response = self.post(
+            Apis.search_api.search,
+            data={"text": text, "order": order, "page": page},
+        )
+
+        response.raise_for_status()
+        response_json = response.json()
+        APIStatusError.raise_for_status(response_json)
+
+        return BeletSearchResult.from_data(self, response_json)
+
+    def set_last_watch_time(
+        self, movie_id: int, season_id: int = 0, watch_time: float = 0
+    ) -> bool:
+        m = MultipartEncoder(
+            {
+                "movie_id": str(movie_id),
+                "season_id": str(season_id),
+                "watch_time": str(watch_time),
+                "play_time": str(0),
+            },
+            boundary="WebKitFormBoundaryMOUcf4f5UGAefHV3",
+        )
+
+        response = self.post(
+            Apis.film_api.last_watch_time,
+            data=m.to_string(),
+            headers={"Content-Type": m.content_type},
+        )
+
+        response.raise_for_status()
+        response_json = response.json()
+        APIStatusError.raise_for_status(response_json)
+
+        return response_json["status"] == "ok"
 
     def download(
         self,

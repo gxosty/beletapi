@@ -9,6 +9,7 @@ class BeletCategory(IntEnum):
     CARTOON = 5
     MUSIC = 35
     DOCUMENTAL = 36
+    NEWS = 37
     SPORT = 39
 
 

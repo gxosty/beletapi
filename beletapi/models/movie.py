@@ -46,6 +46,12 @@ class BeletMovieFragment(BeletMovieBase):
     def __init__(self, session: BeletSession, **kwargs) -> None:
         super().__init__(session, **kwargs)
 
+    def __repr__(self) -> str:
+        return self.__str__()
+
+    def __str__(self) -> str:
+        return f"<BeletMovieFragment: id={self.id} name='{self.name}'>"
+
 
 class BeletSeriesEpisode:
     _files: List[BeletFile]

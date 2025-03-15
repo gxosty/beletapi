@@ -98,7 +98,9 @@ class BeletSession(requests.Session):
 
         kwargs["headers"] = self._set_header_token(kwargs.get("headers", {}))
 
-        response = super().get(*args, **kwargs)
+        _kwargs = kwargs.copy()
+        _kwargs.pop("refresh", None)
+        response = super().get(*args, **_kwargs)
         response = self._repeat_request_if_token_is_expired(
             response, self.get, *args, **kwargs
         )
@@ -122,7 +124,9 @@ class BeletSession(requests.Session):
 
         kwargs["headers"] = self._set_header_token(kwargs.get("headers", {}))
 
-        response = super().post(*args, **kwargs)
+        _kwargs = kwargs.copy()
+        _kwargs.pop("refresh", None)
+        response = super().post(*args, **_kwargs)
         response = self._repeat_request_if_token_is_expired(
             response, self.post, *args, **kwargs
         )

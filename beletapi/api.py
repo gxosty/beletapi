@@ -57,10 +57,21 @@ class FilmApi(metaclass=MetaApi):
     # host
     host = "film.beletapis.com"
 
-    # endpoint
+    # endpoints
     movie = "/api/v{_api_version}/movie/{{}}"
     files = "/api/v{_api_version}/files/{{}}"
     episodes = "/api/v{_api_version}/episodes"
+    last_watch_time = "/api/v1/lastWatchTime"
+
+
+class SearchApi(metaclass=MetaApi):
+    _api_version = 1
+
+    # host
+    host = "film-search.belet.me"
+
+    # endpoints
+    search = "/api/v{_api_version}/search"
 
 
 class Apis:
@@ -75,3 +86,4 @@ class Apis:
     main_api = MainApi()
     homepage_api = HomepageApi()
     film_api = FilmApi()
+    search_api = SearchApi()
