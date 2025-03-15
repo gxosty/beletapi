@@ -2,10 +2,13 @@ import os
 import re
 import struct
 import pickle
-from typing import Optional, List
+import time
+from functools import lru_cache
+from typing import Optional, List, Dict
 
 import requests
 from requests_toolbelt import MultipartEncoder
+from http.cookiejar import Cookie
 
 from .session import BeletSession
 from .exceptions import *
@@ -14,7 +17,8 @@ from .models.movie import BeletMovie, BeletSeries
 from .models.homepage import BeletHomepageSection
 from .models.file import BeletFile
 from .models.search import BeletSearchResult
-from .utils import parse_movie_url
+from .models.searchfilters import SearchFilters
+from .utils import parse_movie_url, generate_fingerprint
 from .downloaders.ffmpegdownloader import FFmpegDownloader
 from .downloaders.downloaderbase import (
     DownloaderBase,
@@ -34,6 +38,24 @@ class BeletClient(BeletSession):
         self._data_file = data_file
         self._downloader = downloader_cls(self)
 
+        self.headers["Referer"] = "https://film.belet.tm/"
+        self.headers["Origin"] = "https://film.belet.tm"
+        self.headers["User-Agent"] = (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36"
+        )
+        self.headers["Sec-Ch-Ua"] = (
+            '"Chromium";v="134", "Not:A-Brand";v="24", "Google Chrome";v="134"'
+        )
+        self.headers["Sec-Ch-Ua-Mobile"] = "?0"
+        self.headers["Sec-Ch-Ua-Platform"] = '"Windows"'
+        self.headers["Sec-Fetch-Dest"] = "empty"
+        self.headers["Sec-Fetch-Mode"] = "cors"
+        self.headers["Sec-Fetch-Site"] = "same-site"
+        self.headers["Dnt"] = "1"
+        self.headers["Priority"] = "u=1, i"
+        self.headers["Lang"] = "ru"
+        self.headers["X-Platform"] = "Web"
+
         self._load_data()
 
     def login(self, phone: int | str) -> None:
@@ -51,6 +73,8 @@ class BeletClient(BeletSession):
         """
 
         phone = self._format_phone(phone)
+        fingerprint = self._create_fingerprint_cookie()
+        self.cookies.set_cookie(fingerprint)
 
         response = requests.Session.post(
             self,
@@ -62,7 +86,6 @@ class BeletClient(BeletSession):
         response.raise_for_status()
         response_json = response.json()
 
-        print(response_json["msg"])
         code = input(f"Please enter the code that was sent to {phone}: ")
 
         response = requests.Session.post(
@@ -89,9 +112,6 @@ class BeletClient(BeletSession):
     def get_movie(self, movie_id: int | str) -> BeletMovie:
         movie_id = self._format_movie_id(movie_id)
         response = self.get(url=Apis.film_api.movie.format(movie_id))
-        
-        with open("movie.json", "wb") as file:
-            file.write(response.content)
 
         response.raise_for_status()
         response_json = response.json()
@@ -132,12 +152,35 @@ class BeletClient(BeletSession):
             for data in response_json["result"]
         )
 
+    @lru_cache(maxsize=1)
+    def get_filter_data(self) -> SearchFilters:
+        response = self.get(Apis.search_api.filter_data)
+
+        response.raise_for_status()
+        response_json = response.json()
+        APIStatusError.raise_for_status(response_json)
+
+        return SearchFilters.from_data(response_json)
+
     def search(
-        self, text: str = "", order: str = "desc", page: int = 1
+        self,
+        text: str = "",
+        order: str = "desc",
+        page: int = 1,
+        filters: Optional[Dict[str, int]] = None,
+        sort: Optional[str] = None,
     ) -> BeletSearchResult:
+        data = {"text": text, "order": order, "page": page}
+
+        if filters:
+            data |= filters
+
+        if sort:
+            data["sort"] = sort
+
         response = self.post(
             Apis.search_api.search,
-            data={"text": text, "order": order, "page": page},
+            data=data
         )
 
         response.raise_for_status()
@@ -250,3 +293,16 @@ class BeletClient(BeletSession):
             return movie_id
 
         raise InvalidMovieIDError(movie_id)
+
+    def _create_fingerprint_cookie(self) -> Cookie:
+        cookie = requests.cookies.create_cookie(
+            "fingerprint",
+            generate_fingerprint(),
+            # "web1d4004b0306b03e924",
+            domain="api.belet.tm",
+            path="/api",
+            secure=True,
+            expires=time.time() + 5184000,
+        )
+
+        return cookie

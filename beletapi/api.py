@@ -72,6 +72,7 @@ class SearchApi(metaclass=MetaApi):
 
     # endpoints
     search = "/api/v{_api_version}/search"
+    filter_data = "/api/v{_api_version}/filter-data"
 
 
 class Apis:
